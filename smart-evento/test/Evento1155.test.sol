@@ -195,7 +195,6 @@ contract Evento1155Test is Test {
             ""
         );
         evento.createOferta(1, 0.4 ether);
-       // evento.setApprovalForAll(address(this), true);
         vm.stopPrank();
         vm.startPrank(user2);
         evento.buyOferta{value: 0.4 ether}(0, 1);
@@ -224,10 +223,10 @@ contract Evento1155Test is Test {
             ""
         );
         evento.createOferta(1, 0.4 ether);
-        evento.setApprovalForAll(user2, true);
+        // evento.setApprovalForAll(user2, true);
         vm.stopPrank();
         vm.startPrank(user2);
-        evento.buyOfertaTo{value: 0.4 ether}(0, 1, user3);
+        evento.buyOfertaTo{value: 0.8 ether}(0, 1, user3);
         vm.stopPrank();
         assertEq(evento.balanceOf(user1, 0), 1);
         assertEq(evento.balanceOf(user2, 0), 0);
@@ -279,6 +278,17 @@ contract Evento1155Test is Test {
         );
         vm.stopPrank();
     }
-    
+
+    function testCancelEvent() public {
+        evento.setSaleActive(true);
+        evento.setEarlyBirdActive(true);
+        evento.setWhitelistActive(true);
+        evento.setEventCancelled(true);
+        assertTrue(evento.eventCancelled());
+        assertFalse(evento.saleActive());
+        assertFalse(evento.earlyBirdActive());
+        assertFalse(evento.whitelistActive());
+    }
+
     receive() external payable {}
 }

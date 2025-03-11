@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-
+import "forge-std/console.sol";
 /**
  * @title Evento1155
  * @dev Contract for tokenizing event tickets with different tiers, pricing strategies, and sales controls
@@ -79,6 +79,10 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
         require(saleActive, "Sales are not active");
         _;
     }
+    modifier notCancelled() {
+        require(!eventCancelled, "Event is cancelled");
+        _;
+    }
 
     function addTicketType(
         string memory name,
@@ -87,7 +91,7 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
         uint256 earlyBirdPrice,
         uint256 whitelistPrice,
         bool active
-    ) external onlyOwner {
+    ) external onlyOwner notCancelled {
         TicketType memory newTicketType = TicketType(
             name,
             maxSupply,
@@ -135,7 +139,7 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
         uint256 earlyBirdPrice,
         uint256 whitelistPrice,
         bool active
-    ) external onlyOwner {
+    ) external onlyOwner notCancelled {
         ticketTypesArray[index] = TicketType(
             name,
             maxSupply,
@@ -147,24 +151,14 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
         );
     }
 
-    /**
-     * @dev Sets approval for all tokens of a specific operator
-     * @param operator Address to approve or revoke approval from
-     * @param approved True to approve, false to revoke approval
-     */
-    function setApprovalForAll(
-        address operator,
-        bool approved
-    ) public override {
-        super.setApprovalForAll(operator, approved);
-    }
+
 
     /**
      * @dev Creates a new oferta
      * @param amount The amount of tickets in the oferta
      * @param price The price of the oferta
      */
-    function createOferta(uint256 amount, uint256 price) external {
+    function createOferta(uint256 amount, uint256 price) external notCancelled {
         ofertas.push(Oferta(msg.sender, ofertas.length, amount, price, true));
     }
 
@@ -176,7 +170,7 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
         return ofertas;
     }
 
-    function buyOferta(uint256 ofertaId, uint256 amount) external payable {
+    function buyOferta(uint256 ofertaId, uint256 amount) external payable notCancelled {
         Oferta memory oferta = ofertas[ofertaId];
         require(oferta.active, "Oferta no activa");
         require(
@@ -213,7 +207,7 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
         uint256 ofertaId,
         uint256 amount,
         address buyer
-    ) external payable {
+    ) external payable notCancelled {
         Oferta memory oferta = ofertas[ofertaId];
         require(oferta.active, "Oferta no activa");
         require(
@@ -231,16 +225,7 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
             oferta.price > 0,
             "El precio de la oferta debe ser mayor que cero"
         );
-        // This require statement is redundant as the _safeTransferFrom function already checks
-        // if the sender is approved to transfer tokens from the owner.
-        // The ERC1155 implementation in _safeTransferFrom will verify that either:
-        // 1. msg.sender is the owner of the tokens, or
-        // 2. msg.sender is approved by the owner via setApprovalForAll
-        // So we can safely remove this require statement.
-        require(
-            isApprovedForAll(oferta.owner, msg.sender),
-            "No tienes permisos para transferir tokens de la oferta"
-        );
+       
         _safeTransferFrom(oferta.owner, buyer, oferta.id, amount, "");
         oferta.amount -= amount;
         ofertas[ofertaId] = oferta;
@@ -255,18 +240,7 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
         }
     }
 
-    /**
-     * @dev Checks if an operator is approved for all tokens of an owner
-     * @param account Owner of the tokens
-     * @param operator Address to check approval status
-     * @return bool True if the operator is approved, false otherwise
-     */
-    function isApprovedForAll(
-        address account,
-        address operator
-    ) public view override returns (bool) {
-        return super.isApprovedForAll(account, operator);
-    }
+   
 
     /**
      * @dev Purchase tickets
@@ -337,7 +311,7 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
         uint256 newPrice,
         uint256 newEarlyBirdPrice,
         uint256 newWhitelistPrice
-    ) external onlyOwner {
+    ) external onlyOwner notCancelled {
         require(
             newEarlyBirdPrice <= newPrice,
             "Early bird price must be less than or equal to regular price"
@@ -355,10 +329,28 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
     }
 
     /**
+     * @dev Set event cancelled status
+     * @param _cancelled Whether the event is cancelled
+     */
+    function setEventCancelled(bool _cancelled) external onlyOwner notCancelled {
+        eventCancelled = _cancelled;
+        
+        // When an event is cancelled, automatically disable all sales
+        if (_cancelled) {
+            saleActive = false;
+            earlyBirdActive = false;
+            whitelistActive = false;
+            
+            emit SaleWindowUpdated(false);
+            emit EarlyBirdWindowUpdated(false);
+            emit WhitelistWindowUpdated(false);
+        }
+    }
+    /**
      * @dev Set sale window status
      * @param _active Whether the sale window is active
      */
-    function setSaleActive(bool _active) external onlyOwner {
+    function setSaleActive(bool _active) external onlyOwner notCancelled {
         saleActive = _active;
         emit SaleWindowUpdated(_active);
     }
@@ -367,7 +359,7 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
      * @dev Set early bird window status
      * @param _active Whether the early bird window is active
      */
-    function setEarlyBirdActive(bool _active) external onlyOwner {
+    function setEarlyBirdActive(bool _active) external onlyOwner notCancelled {
         earlyBirdActive = _active;
         emit EarlyBirdWindowUpdated(_active);
     }
@@ -376,7 +368,7 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
      * @dev Set whitelist status
      * @param _active Whether whitelist is active
      */
-    function setWhitelistActive(bool _active) external onlyOwner {
+    function setWhitelistActive(bool _active) external onlyOwner notCancelled {
         whitelistActive = _active;
         emit WhitelistWindowUpdated(_active);
     }
@@ -389,7 +381,7 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
     function addDiscountCode(
         string calldata code,
         uint256 discountPercentage
-    ) external onlyOwner {
+    ) external onlyOwner notCancelled {
         require(
             discountPercentage > 0 && discountPercentage <= 100,
             "Invalid discount percentage"
@@ -404,7 +396,7 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
     /**
      * @dev Withdraw contract funds (only owner)
      */
-    function withdraw() external onlyOwner {
+    function withdraw() external onlyOwner notCancelled {
         require(!eventCancelled, "Cannot withdraw after event cancellation");
         payable(owner()).transfer(address(this).balance);
     }
@@ -415,7 +407,7 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
      * @notice This is a convenience function for adding individual addresses
      * @notice For larger whitelists, use the merkle tree approach with setWhitelistMerkleRoot
      */
-    function addToWhitelist(address _address) external onlyOwner {
+    function addToWhitelist(address _address) external onlyOwner notCancelled {
         whitelist[_address] = true;
     }
 
@@ -425,7 +417,7 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
      * @notice This is a convenience function for removing individual addresses
      * @notice For larger whitelists, use the merkle tree approach with setWhitelistMerkleRoot
      */
-    function removeFromWhitelist(address _address) external onlyOwner {
+    function removeFromWhitelist(address _address) external onlyOwner notCancelled  {
         whitelist[_address] = false;
     }
 
@@ -446,12 +438,14 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
         address to,
         uint256[] memory ids,
         uint256[] memory amounts
-    ) internal override {
+    ) internal override notCancelled {
         // Call the parent implementation of _beforeTokenTransfer
         // This ensures that any checks or logic in the parent contract's implementation are executed
         // The ERC1155 implementation may include important validation or state updates
         super._update(from, to, ids, amounts);
-
+        console.log("from", from);
+        console.log("to", to);
+        
         // Prevent transfers if event is cancelled (except for burns during refunds)
         if (eventCancelled && to != address(0)) {
             revert("Transfers disabled after event cancellation");
