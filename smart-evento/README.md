@@ -1,66 +1,147 @@
-## Foundry
+# Smart Evento - ERC1155 Event Ticketing System
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+Smart Evento is a blockchain-based event ticketing system built on Ethereum using the ERC1155 token standard. This system allows event organizers to create, manage, and sell tickets with various tiers and pricing strategies.
 
-Foundry consists of:
+## Features
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+- **Multiple Ticket Types**: Create different ticket tiers (Common, VIP, Premium, etc.) with customizable properties
+- **Flexible Pricing Strategies**: Support for regular pricing, early bird discounts, and whitelist pricing
+- **Secondary Market**: Built-in marketplace for ticket reselling through the Oferta system
+- **Access Control**: Owner-only administrative functions for event management
+- **Security**: Implements reentrancy protection and proper access controls
 
-## Documentation
+## Contract Overview
 
-https://book.getfoundry.sh/
+The main contract `Evento1155` inherits from:
+- `ERC1155`: For multi-token functionality
+- `Ownable`: For access control
+- `ReentrancyGuard`: For protection against reentrancy attacks
 
-## Usage
+## Key Structures
 
-### Build
+### TicketType
 
-```shell
-$ forge build
+```solidity
+struct TicketType {
+    string name;
+    uint256 maxSupply;
+    uint256 currentSupply;
+    uint256 price;
+    uint256 earlyBirdPrice;
+    uint256 whitelistPrice;
+    bool active;
+}
 ```
 
-### Test
+### Oferta
 
-```shell
-$ forge test
+```solidity
+struct Oferta {
+    address owner;
+    uint256 id;
+    uint256 amount;
+    uint256 price;
+    bool active;
+}
 ```
 
-### Format
+## Contract Functions
 
-```shell
-$ forge fmt
+### Ticket Management
+
+#### createTicketType
+
+```solidity
+function createTicketType(
+    string memory name,
+    uint256 maxSupply,
+    uint256 price,
+    uint256 earlyBirdPrice,
+    uint256 whitelistPrice,
+    bool active
+) external onlyOwner;
 ```
 
-### Gas Snapshots
+#### updateTicketType
 
-```shell
-$ forge snapshot
+```solidity
+function updateTicketType(
+    uint256 index,
+    string memory name,
+    uint256 maxSupply,
+    uint256 price,
+    uint256 earlyBirdPrice,
+    uint256 whitelistPrice,
+    bool active
+) external onlyOwner;
 ```
 
-### Anvil
+#### setTicketPrices
 
-```shell
-$ anvil
+```solidity
+function setTicketPrices(
+    uint256 index,
+    uint256 price,
+    uint256 earlyBirdPrice,
+    uint256 whitelistPrice
+) external onlyOwner;
 ```
 
-### Deploy
+#### setSaleActive  
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+```solidity
+function setSaleActive(bool active) external onlyOwner;
 ```
 
-### Cast
+#### purchaseTickets
 
-```shell
-$ cast <subcommand>
+```solidity
+function purchaseTickets(
+    uint256 ticketType,
+    uint256 amount,
+) external payable nonReentrant;
 ```
 
-### Help
+#### buyOferta
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+```solidity
+function buyOferta(uint256 ofertaId, uint256 amount) external payable nonReentrant;
 ```
+
+#### buyOfertaTo
+
+```solidity
+function buyOfertaTo(uint256 ofertaId, uint256 amount, address to) external payable nonReentrant;
+```
+
+#### setApprovalForAll
+
+```solidity
+function setApprovalForAll(address operator, bool approved) public override;
+```
+
+#### createOferta
+
+```solidity
+function createOferta(uint256 amount, uint256 price) external;
+```
+
+#### getOfertas
+
+```solidity
+function getOfertas() external view returns (Oferta[] memory);
+```
+
+#### isApprovedForAll
+
+```solidity
+function isApprovedForAll(address account, address operator) public view override returns (bool);
+``` 
+
+
+
+
+
+
+
+
