@@ -39,6 +39,9 @@ contract Evento1155Test is Test {
     }
     
     function testInitialState() public view {
+
+        // state
+        // action
         // Check ticket types are initialized correctly
         (
             string memory name, 
@@ -49,7 +52,7 @@ contract Evento1155Test is Test {
             uint256 whitelistPrice, 
             bool active
         ) = evento.ticketTypesArray(0);
-        
+        // asset
         assertEq(name, "COMMON");
         assertEq(maxSupply, 1000);
         assertEq(currentSupply, 0);
@@ -69,11 +72,12 @@ contract Evento1155Test is Test {
     
     function testActivateSale() public {
         // Activate sale
+        // action
         evento.setSaleActive(true);
-        assertTrue(evento.saleActive());
-        
-        // Activate early bird
         evento.setEarlyBirdActive(true);
+
+        // asercion
+        assertTrue(evento.saleActive());
         assertTrue(evento.earlyBirdActive());
     }
     

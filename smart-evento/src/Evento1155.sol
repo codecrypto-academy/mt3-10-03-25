@@ -4,13 +4,14 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "forge-std/console.sol";
 /**
  * @title Evento1155
  * @dev Contract for tokenizing event tickets with different tiers, pricing strategies, and sales controls
  */
 contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
+    
+    
     // Ticket configuration
     struct TicketType {
         string name;
@@ -22,7 +23,7 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
         bool active; // Whether this ticket type is active
     }
     TicketType[] public ticketTypesArray; // Ticket type names
-    // Sale configuration
+    // multples status
     bool public saleActive;
     bool public earlyBirdActive;
     bool public whitelistActive;
@@ -439,12 +440,8 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
         uint256[] memory ids,
         uint256[] memory amounts
     ) internal override notCancelled {
-        // Call the parent implementation of _beforeTokenTransfer
-        // This ensures that any checks or logic in the parent contract's implementation are executed
-        // The ERC1155 implementation may include important validation or state updates
+
         super._update(from, to, ids, amounts);
-        console.log("from", from);
-        console.log("to", to);
         
         // Prevent transfers if event is cancelled (except for burns during refunds)
         if (eventCancelled && to != address(0)) {
