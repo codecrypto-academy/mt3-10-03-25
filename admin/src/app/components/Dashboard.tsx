@@ -1,16 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import TicketMaintenanceForm from './TicketMaintenanceForm';
 
 type DashboardOption = 'tickets' | 'prices' | 'earlyBird' | 'common';
 
 export const Dashboard = () => {
   const [activeOption, setActiveOption] = useState<DashboardOption | null>(null);
-  const router = useRouter();
 
   const menuOptions = [
-    { id: 'tickets', name: 'Mantenimiento de Ticket', icon: '🎟️' },
+    { id: 'tickets', name: 'Mantenimiento de los datos del contrato', icon: '🎟️' },
     { id: 'prices', name: 'Actualización de Precios', icon: '💰' },
     { id: 'earlyBird', name: 'Activar/Desactivar Early Bird', icon: '🕒' },
     { id: 'common', name: 'Common', icon: '🔄' },
@@ -18,8 +17,22 @@ export const Dashboard = () => {
 
   const handleOptionClick = (option: DashboardOption) => {
     setActiveOption(option);
-    // Aquí podrías agregar navegación si prefieres páginas separadas
-    // router.push(`/dashboard/${option}`);
+  };
+
+  // Función para renderizar el contenido según la opción seleccionada
+  const renderContent = () => {
+    switch (activeOption) {
+      case 'tickets':
+        return <TicketMaintenanceForm />;
+      case 'prices':
+        return <p>Contenido para actualización de precios</p>;
+      case 'earlyBird':
+        return <p>Contenido para activar/desactivar Early Bird</p>;
+      case 'common':
+        return <p>Contenido para Common</p>;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -55,10 +68,7 @@ export const Dashboard = () => {
           <h2 className="text-xl font-bold mb-4">
             {menuOptions.find(o => o.id === activeOption)?.name}
           </h2>
-          <p className="text-gray-600">
-            Interfaz de gestión para {menuOptions.find(o => o.id === activeOption)?.name.toLowerCase()}.
-            (Esta sección se implementará según las necesidades específicas)
-          </p>
+          {renderContent()}
         </div>
       )}
     </div>
