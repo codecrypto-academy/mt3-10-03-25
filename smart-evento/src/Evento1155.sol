@@ -22,12 +22,16 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
         uint256 whitelistPrice; // Whitelist price in wei
         bool active; // Whether this ticket type is active
     }
-    TicketType[] public ticketTypesArray; // Ticket type names
+    TicketType[] public ticketTypesArray; // Ticket  names
     // multples status
     bool public saleActive;
     bool public earlyBirdActive;
     bool public whitelistActive;
     bool public eventCancelled;
+
+
+    // Mapping to track registered users and their information
+    mapping(address => bool) public registeredUsers;
 
     // Ofertas
     struct Oferta {
@@ -84,7 +88,10 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
         require(!eventCancelled, "Event is cancelled");
         _;
     }
-
+    function getTicketTypes() external view returns (TicketType[] memory) {
+        return ticketTypesArray;
+    }
+    // add ticket type
     function addTicketType(
         string memory name,
         uint256 maxSupply,
@@ -103,6 +110,16 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
             active
         );
         ticketTypesArray.push(newTicketType);
+    }
+
+    function writeAllTicketTypes(TicketType[] memory _ticketTypes) external onlyOwner notCancelled {
+        // Clear existing ticket types before adding new ones
+        if (ticketTypesArray.length > 0) {
+            delete ticketTypesArray;
+        }
+        for (uint256 i = 0; i < _ticketTypes.length; i++) {
+            ticketTypesArray.push(_ticketTypes[i]);
+        }
     }
 
     function getTicketType(

@@ -139,7 +139,15 @@ function isApprovedForAll(address account, address operator) public view overrid
 ``` 
 
 
-
+## compilar smart contract y llevar abi y address a admin. 
+Hay que ejecutarlo desde el directorio smart-evento
+```bash
+forge create --rpc-url http://localhost:8545 \
+--private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
+src/Evento1155.sol:Evento1155 > contrato.txt  && cp ./out/Evento1155.sol/Evento1155.json \
+../admin/src/app/abi.json && cat contrato.txt | grep  "Deployed to:" | \
+sed 's/Deployed to: //' > ../admin/src/app/contrato.json
+```
 
 
 
