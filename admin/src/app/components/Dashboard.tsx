@@ -2,17 +2,21 @@
 
 import { useState } from 'react';
 import TicketMaintenanceForm from './TicketMaintenanceForm';
+import ContractMaintenanceForm from './ContractMaintenanceForm';
+import DiscountCodeForm from './DiscountCodeForm';
+import WhitelistForm from './WhitelistForm';
+import { isOwnerFunction, useMetaMask } from '../contexts/MetaMaskContext';
 
-type DashboardOption = 'tickets' | 'prices' | 'earlyBird' | 'common';
+type DashboardOption = 'tickets' | 'codigosDescuento' | 'whitelist' | 'contract';
 
 export const Dashboard = () => {
   const [activeOption, setActiveOption] = useState<DashboardOption | null>(null);
 
   const menuOptions = [
     { id: 'tickets', name: 'Mantenimiento de los datos del contrato', icon: '🎟️' },
-    { id: 'prices', name: 'Actualización de Precios', icon: '💰' },
-    { id: 'earlyBird', name: 'Activar/Desactivar Early Bird', icon: '🕒' },
-    { id: 'common', name: 'Common', icon: '🔄' },
+    { id: 'codigosDescuento', name: 'Los codigos de descuento', icon: '💰' },
+    { id: 'whitelist', name: 'Whitelist', icon: '🔄' },
+    { id: 'contract', name: 'Estado del Contrato', icon: '⚙️' },
   ];
 
   const handleOptionClick = (option: DashboardOption) => {
@@ -24,17 +28,28 @@ export const Dashboard = () => {
     switch (activeOption) {
       case 'tickets':
         return <TicketMaintenanceForm />;
-      case 'prices':
-        return <p>Contenido para actualización de precios</p>;
-      case 'earlyBird':
-        return <p>Contenido para activar/desactivar Early Bird</p>;
-      case 'common':
-        return <p>Contenido para Common</p>;
+      case 'codigosDescuento':
+        return <DiscountCodeForm />;
+      case 'whitelist':
+        return <WhitelistForm />;
+      case 'contract':
+        return <ContractMaintenanceForm />;
       default:
         return null;
     }
   };
 
+  const { isConnected } = useMetaMask();
+  if (!isConnected) {
+    return <div>No estás conectado a MetaMask</div>;
+  } else {
+    (async () => {  
+      const isOwner = await isOwnerFunction();
+      if (!isOwner) {
+        // alert('No estás autorizado para acceder a esta página');
+      }
+    })();
+  }
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-8">Panel de Administración de Eventos</h1>

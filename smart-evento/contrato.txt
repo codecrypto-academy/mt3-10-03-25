@@ -1,4 +1,6 @@
-No files changed, compilation skipped
+Compiling 1 files with Solc 0.8.20
+Solc 0.8.20 finished in 832.96ms
+Compiler run successful!
 Deployer: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
-Deployed to: 0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0
-Transaction hash: 0xf1c2de4252a6875b9511746b8f8f54972471b67999c40ece87d2f5070a31e581
+Deployed to: 0x0165878A594ca255338adfa4d48449f69242Eb8F
+Transaction hash: 0x2fd0a686b37ed8e14d67fb7157b884f63d62b6d20bc881c3ea54b06a2c67b55a

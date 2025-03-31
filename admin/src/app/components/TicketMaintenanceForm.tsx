@@ -66,7 +66,7 @@ const TicketMaintenanceForm = () => {
         const provider = new ethers.BrowserProvider(ethereum);
         const signer = await provider.getSigner();
         console.log({signer});
-        return new ethers.Contract(contractAddress, contractABI, signer);
+        return new ethers.Contract(contractAddress.address, contractABI, signer);
       } else {
         setStatusMessage({
           type: 'error',

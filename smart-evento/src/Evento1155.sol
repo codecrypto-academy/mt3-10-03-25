@@ -77,6 +77,8 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
         eventCancelled = false;
     }
 
+
+
     /**
      * @dev Modifier to check if sales are active
      */
@@ -90,6 +92,10 @@ contract Evento1155 is ERC1155, Ownable, ReentrancyGuard {
     }
     function getTicketTypes() external view returns (TicketType[] memory) {
         return ticketTypesArray;
+    }
+
+    function isOnwer() external view returns (bool) {
+        return owner() == msg.sender;
     }
     // add ticket type
     function addTicketType(

@@ -1,6 +1,8 @@
 'use client';
 
 import { ethers } from 'ethers';
+import abi from "../abi.json"
+import contrato from "../contrato.json"
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 // Add type declarations for window.ethereum
@@ -28,11 +30,25 @@ const MetaMaskContext = createContext<MetaMaskContextType>({
   disconnect: () => {},
 });
 
+export async function isOwnerFunction(): Promise<boolean> {
+  if (typeof window.ethereum === 'undefined') {
+    alert('MetaMask is not installed!');
+    return false;
+  }
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  const contractInstance = new ethers.Contract(contrato.address, abi.abi, provider);
+  const isOwner = await contractInstance.isOnwer();
+  return isOwner;
+}
+
+
 export const useMetaMask = () => useContext(MetaMaskContext);
 
 interface MetaMaskProviderProps {
   children: ReactNode;
 }
+
+
 
 export const MetaMaskProvider = ({ children }: MetaMaskProviderProps) => {
   const [address, setAddress] = useState<string | null>(null);
@@ -47,8 +63,10 @@ export const MetaMaskProvider = ({ children }: MetaMaskProviderProps) => {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const accounts = await provider.send('eth_requestAccounts', []);
-      
+     
       if (accounts.length > 0) {
+        
+        
         setAddress(accounts[0]);
         setIsConnected(true);
       }
@@ -62,13 +80,15 @@ export const MetaMaskProvider = ({ children }: MetaMaskProviderProps) => {
     setIsConnected(false);
   };
 
-  const handleAccountsChanged = (accounts: string[]) => {
+  const handleAccountsChanged = async (accounts: string[]) => {
     if (accounts.length === 0) {
       // User disconnected their wallet
       setAddress(null);
       setIsConnected(false);
     } else if (accounts[0] !== address) {
       // User switched accounts
+     
+
       setAddress(accounts[0]);
       setIsConnected(true);
     }
@@ -83,6 +103,7 @@ export const MetaMaskProvider = ({ children }: MetaMaskProviderProps) => {
           const accounts = await provider.send('eth_accounts', []);
           
           if (accounts.length > 0) {
+            
             setAddress(accounts[0]);
             setIsConnected(true);
           }
